@@ -57,7 +57,7 @@ public class Login extends JFrame implements ActionListener{
 	
 	public void actionPerformed(ActionEvent ae) {
 		if (ae.getSource() == submit) {
-			
+			System.out.println("Submit is pressed");
 			String username = tfusername.getText();
 			String password = tfpassword.getText();
 			String sql = "SELECT * FROM login WHERE username = ? and password = ?";
@@ -71,7 +71,7 @@ public class Login extends JFrame implements ActionListener{
 				ResultSet rs = stmt.executeQuery();
 				
 				if (rs.next()) {
-					System.out.println("Valid");
+					new Home();
 					setVisible(false);
 				} else {
 					JOptionPane.showMessageDialog(null, "Invalid Username or Password");
