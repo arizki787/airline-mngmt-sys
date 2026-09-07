@@ -17,6 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+
 public class Home extends JFrame implements ActionListener{
 	
 	JMenuItem flightDetails, customerDetails, journeyDetails, bookFlights, ticketCancellation, boardingPass;
@@ -45,7 +46,7 @@ public class Home extends JFrame implements ActionListener{
 		heading.setBounds(500, 40, 1000, 40);
 		heading.setForeground(Color.BLUE);
 		heading.setFont(new Font("Tahoma", Font.PLAIN, 36));
-		add(heading);
+		img.add(heading);
 		
 		
 		JMenuBar menubar = new JMenuBar();
@@ -89,13 +90,20 @@ public class Home extends JFrame implements ActionListener{
 
 	}
 	
-	public void actionPerformed(ActionEvent ae) {
-		System.out.println("action event value: "+ ae);
-		if (ae.getSource() == customerDetails) {
-			System.out.println("print in here");
-			new AddCustomer();
-		}
-	}
+    public void actionPerformed(ActionEvent ae) {
+        String text = ae.getActionCommand();
+        if (text.equals("Add Customer Details")) {
+            new AddCustomer();
+        } else if (text.equals("Flight Details")) {
+            new FlightInfo();
+        } else if (text.equals("Book Flight")) {
+            new BookFlight();
+        } else if (text.equals("Journey Details")) {
+            new JourneyDetails();
+        } else if (text.equals("Cancel Ticket")) {
+            new Cancel();
+        }
+    }
 	
 	public static void main(String[] args) {
 		new Home();
