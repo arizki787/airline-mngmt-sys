@@ -111,26 +111,43 @@ public class AddCustomer extends JFrame implements ActionListener{
         String phone = tfphone.getText();
         String address = tfaddress.getText();
         String aadhar = tfaadhar.getText();
-        String gender = null;
+	    String gender;
         if (rbmale.isSelected()) {
             gender = "Male";
-        } else {
+	    } else if (rbfemale.isSelected()) {
             gender = "Female";
-        }
-        
-        String sql = "insert into passenger values('"+name+"', '"+nationality+"', '"+phone+"', '"+address+"', '"+aadhar+"', '"+gender+"')";
+	    } else {
+	        gender = null;
+	    }
 
-        try (Connection c = Conn.getConnection();
-        		 PreparedStatement stmt = c.prepareStatement(sql)) {
+	    if (name.isBlank() || nationality.isBlank() || phone.isBlank()
+	            || address.isBlank() || aadhar.isBlank() || gender == null) {
+	        JOptionPane.showMessageDialog(this, "Complete all customer fields before saving.",
+	                "Missing information", JOptionPane.WARNING_MESSAGE);
+	        return;
+	    }
 
-            stmt.executeUpdate();
+	    String sql = "INSERT INTO passenger (name, nationality, phone, address, aadhar, gender) "
+	            + "VALUES (?, ?, ?, ?, ?, ?)";
+
+	    try (Connection c = Conn.getConnection();
+	         PreparedStatement stmt = c.prepareStatement(sql)) {
+
+	        stmt.setString(1, name);
+	        stmt.setString(2, nationality);
+	        stmt.setString(3, phone);
+	        stmt.setString(4, address);
+	        stmt.setString(5, aadhar);
+	        stmt.setString(6, gender);
+	        stmt.executeUpdate();
             
-            JOptionPane.showMessageDialog(null, "Customer Details Added Successfully");
+	        JOptionPane.showMessageDialog(null, "Customer Details Added Successfully");
         
-            setVisible(false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+	        setVisible(false);
+	    } catch (Exception e) {
+	        JOptionPane.showMessageDialog(this, "Unable to save customer details: " + e.getMessage(),
+	                "Database error", JOptionPane.ERROR_MESSAGE);
+	    }
 	}
 	
 	public static void main(String[] args) {

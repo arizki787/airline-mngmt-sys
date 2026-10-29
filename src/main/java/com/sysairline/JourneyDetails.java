@@ -44,18 +44,21 @@ public class JourneyDetails extends JFrame implements ActionListener{
     }
     
     public void actionPerformed(ActionEvent ae) {
-	    String sql = "select * from reservation where PNR = '"+pnr.getText()+"'";
+	    String sql = "SELECT * FROM reservation WHERE PNR = ?";
         try (Connection c = Conn.getConnection();
-        		 PreparedStatement stmt = c.prepareStatement(sql);
-        		 ResultSet rs = stmt.executeQuery()){
+             PreparedStatement stmt = c.prepareStatement(sql)) {
+            stmt.setString(1, pnr.getText().trim());
+            try (ResultSet rs = stmt.executeQuery()) {
             
-            if (!rs.isBeforeFirst()) {
-                JOptionPane.showMessageDialog(null, "No Information Found");
-                return;
+                if (!rs.isBeforeFirst()) {
+                    JOptionPane.showMessageDialog(this, "No Information Found");
+                    return;
+                }
+                table.setModel(DatabaseUtils.buildTableModel(rs));
             }
-            table.setModel(DatabaseUtils.buildTableModel(rs));
         } catch(Exception e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Unable to load journey details: " + e.getMessage(),
+                    "Database error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

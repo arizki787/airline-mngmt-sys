@@ -20,6 +20,7 @@ public class Login extends JFrame implements ActionListener{
 	public Login() {
 		getContentPane().setBackground(Color.WHITE); //need to learn about content pane
 		setLayout(null);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		
 		JLabel lblusername= new JLabel("Username");
@@ -57,9 +58,13 @@ public class Login extends JFrame implements ActionListener{
 	
 	public void actionPerformed(ActionEvent ae) {
 		if (ae.getSource() == submit) {
-			System.out.println("Submit is pressed");
 			String username = tfusername.getText();
-			String password = tfpassword.getText();
+			String password = new String(tfpassword.getPassword());
+			if (username.isBlank() || password.isBlank()) {
+				JOptionPane.showMessageDialog(this, "Enter both username and password.",
+						"Missing information", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
 			String sql = "SELECT * FROM login WHERE username = ? and password = ?";
 			
 			try (Connection c = Conn.getConnection();
@@ -67,23 +72,22 @@ public class Login extends JFrame implements ActionListener{
 			
 				stmt.setString(1, username);
 				stmt.setString(2, password);
-				
-				ResultSet rs = stmt.executeQuery();
-				
-				if (rs.next()) {
-					new Home();
-					setVisible(false);
-				} else {
-					JOptionPane.showMessageDialog(null, "Invalid Username or Password");
-					setVisible(false);
+				try (ResultSet rs = stmt.executeQuery()) {
+					if (rs.next()) {
+						new Home();
+						dispose();
+					} else {
+						JOptionPane.showMessageDialog(this, "Invalid Username or Password");
+					}
 				}
 				
 				
-			} catch (SQLException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(this, "Unable to authenticate: " + e.getMessage(),
+						"Database error", JOptionPane.ERROR_MESSAGE);
 			}
 		} else if (ae.getSource() == close) {
-			setVisible(false);
+			dispose();
 		}
 	}
 	

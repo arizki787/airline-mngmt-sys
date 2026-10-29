@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
@@ -26,7 +27,8 @@ public class FlightInfo extends JFrame {
             
             table.setModel(DatabaseUtils.buildTableModel(rs));
         } catch(Exception e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Unable to load flight details: " + e.getMessage(),
+                    "Database error", JOptionPane.ERROR_MESSAGE);
         }
         
         JScrollPane jsp = new JScrollPane(table);

@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Random;
+import java.text.SimpleDateFormat;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -28,6 +29,9 @@ public class BookFlight extends JFrame implements ActionListener {
     JButton bookflight, fetchButton, flight;
     Choice source, destination;
     JDateChooser dcdate;
+    private String loadedAadhar;
+    private String loadedSource;
+    private String loadedDestination;
     
     public BookFlight() {
         getContentPane().setBackground(Color.WHITE);
@@ -119,7 +123,8 @@ public class BookFlight extends JFrame implements ActionListener {
             }
             
         } catch (Exception e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Unable to load flights: " + e.getMessage(),
+                    "Database error", JOptionPane.ERROR_MESSAGE);
         }
         
         flight = new JButton("Fetch Flights");
@@ -156,7 +161,7 @@ public class BookFlight extends JFrame implements ActionListener {
         dcdate.setBounds(220, 530, 150, 25);
         add(dcdate);
         
-        ImageIcon i1 = new ImageIcon(ClassLoader.getSystemResource("airlinemanagementsystem/icons/details.jpg"));
+        ImageIcon i1 = new ImageIcon(BookFlight.class.getResource("/com/sysairline/icons/details.jpg"));
         Image i2 = i1.getImage().getScaledInstance(450, 320, Image.SCALE_DEFAULT);
         ImageIcon image = new ImageIcon(i2);
         JLabel lblimage = new JLabel(image);
@@ -177,67 +182,118 @@ public class BookFlight extends JFrame implements ActionListener {
     
     public void actionPerformed(ActionEvent ae) {
         if (ae.getSource() == fetchButton) {
-            String aadhar = tfaadhar.getText();
+            String aadhar = tfaadhar.getText().trim();
+            loadedAadhar = null;
+            tfname.setText("");
+            tfnationality.setText("");
+            tfaddress.setText("");
+            labelgender.setText("");
             
             try {
-                Connection c = Conn.getConnection();
-                PreparedStatement stmt = c.prepareStatement("select * from passenger where aadhar = '"+aadhar+"'");
-                ResultSet rs = stmt.executeQuery();
+                String sql = "SELECT * FROM passenger WHERE aadhar = ?";
+                try (Connection c = Conn.getConnection();
+                     PreparedStatement stmt = c.prepareStatement(sql)) {
+                    stmt.setString(1, aadhar);
+                    try (ResultSet rs = stmt.executeQuery()) {
                 
-                if (rs.next()) {
-                    tfname.setText(rs.getString("name")); 
-                    tfnationality.setText(rs.getString("nationality")); 
-                    tfaddress.setText(rs.getString("address"));
-                    labelgender.setText(rs.getString("gender"));
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please enter correct aadhar");                
+                        if (rs.next()) {
+                            tfname.setText(rs.getString("name"));
+                            tfnationality.setText(rs.getString("nationality"));
+                            tfaddress.setText(rs.getString("address"));
+                            labelgender.setText(rs.getString("gender"));
+                            loadedAadhar = aadhar;
+                        } else {
+                            JOptionPane.showMessageDialog(this, "Please enter correct ID number");
+                        }
+                    }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Unable to load passenger details: " + e.getMessage(),
+                        "Database error", JOptionPane.ERROR_MESSAGE);
             }
         } else if (ae.getSource() == flight) {
             String src = source.getSelectedItem();
             String dest = destination.getSelectedItem();
-            try {
-                Connection conn = Conn.getConnection();
+            loadedSource = null;
+            loadedDestination = null;
+            labelfname.setText("");
+            labelfcode.setText("");
 
-                String query = "select * from flight where source = '"+src+"' and destination = '"+dest+"'";
-                PreparedStatement stmt = conn.prepareStatement(query);
+            try {
+                String query = "SELECT * FROM flight WHERE source = ? AND destination = ?";
+                try (Connection conn = Conn.getConnection();
+                     PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setString(1, src);
+                    stmt.setString(2, dest);
+                    try (ResultSet rs = stmt.executeQuery()) {
                 
-                ResultSet rs = stmt.executeQuery();
-                
-                if (rs.next()) {
-                    labelfname.setText(rs.getString("f_name")); 
-                    labelfcode.setText(rs.getString("f_code")); 
-                } else {
-                    JOptionPane.showMessageDialog(null, "No Flights Found");                
+                        if (rs.next()) {
+                            labelfname.setText(rs.getString("f_name"));
+                            labelfcode.setText(rs.getString("f_code"));
+                            loadedSource = src;
+                            loadedDestination = dest;
+                        } else {
+                            JOptionPane.showMessageDialog(this, "No Flights Found");
+                        }
+                    }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Unable to search flights: " + e.getMessage(),
+                        "Database error", JOptionPane.ERROR_MESSAGE);
             }
         } else {
+            String aadhar = tfaadhar.getText().trim();
+            String src = source.getSelectedItem();
+            String des = destination.getSelectedItem();
+            if (loadedAadhar == null || !loadedAadhar.equals(aadhar)) {
+                JOptionPane.showMessageDialog(this, "Fetch a valid passenger before booking.",
+                        "Missing passenger", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (loadedSource == null || !loadedSource.equals(src) || !loadedDestination.equals(des)) {
+                JOptionPane.showMessageDialog(this, "Fetch a flight for the selected route before booking.",
+                        "Missing flight", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (dcdate.getDate() == null) {
+                JOptionPane.showMessageDialog(this, "Select a travel date before booking.",
+                        "Missing date", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             Random random = new Random();
             
-            String aadhar = tfaadhar.getText();
             String name = tfname.getText(); 
             String nationality = tfnationality.getText();
             String flightname = labelfname.getText(); 
             String flightcode = labelfcode.getText();
-            String src = source.getSelectedItem(); 
-            String des = destination.getSelectedItem();
-            String ddate = ((JTextField) dcdate.getDateEditor().getUiComponent()).getText();
+            String ddate = new SimpleDateFormat("yyyy-MM-dd").format(dcdate.getDate());
             
             try {
-                Connection c = Conn.getConnection();
-                PreparedStatement stmt = c.prepareStatement("insert into reservation values('PNR-"+random.nextInt(1000000)+"', 'TIC-"+random.nextInt(10000)+"', '"+aadhar+"', '"+name+"', '"+nationality+"', '"+flightname+"', '"+flightcode+"', '"+src+"', '"+des+"', '"+ddate+"')");
-
-                stmt.executeUpdate();
+                String sql = "INSERT INTO reservation "
+                        + "(PNR, ticket, aadhar, name, nationality, flightname, flightcode, source, destination, ddate) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                try (Connection c = Conn.getConnection();
+                     PreparedStatement stmt = c.prepareStatement(sql)) {
+                    stmt.setString(1, "PNR-" + random.nextInt(1000000));
+                    stmt.setString(2, "TIC-" + random.nextInt(10000));
+                    stmt.setString(3, aadhar);
+                    stmt.setString(4, name);
+                    stmt.setString(5, nationality);
+                    stmt.setString(6, flightname);
+                    stmt.setString(7, flightcode);
+                    stmt.setString(8, src);
+                    stmt.setString(9, des);
+                    stmt.setString(10, ddate);
+                    stmt.executeUpdate();
+                }
                 
                 JOptionPane.showMessageDialog(null, "Ticket Booked Successfully");
 
                 setVisible(false);
             } catch (Exception e) {
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Unable to book flight: " + e.getMessage(),
+                        "Database error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

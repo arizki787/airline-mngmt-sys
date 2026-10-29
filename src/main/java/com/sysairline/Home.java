@@ -4,26 +4,22 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.*;
-import java.sql.*;
 
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
 
 
 public class Home extends JFrame implements ActionListener{
 	
-	JMenuItem flightDetails, customerDetails, journeyDetails, bookFlights, ticketCancellation, boardingPass;
+	JMenuItem flightDetails, customerDetails, journeyDetails, bookFlights, ticketCancellation;
 	public Home() {
 		
 		setLayout(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		Image original = new ImageIcon(Home.class.getResource("icons/front.jpg")).getImage();
 		JLabel img = new JLabel();
@@ -61,7 +57,7 @@ public class Home extends JFrame implements ActionListener{
 		
 		customerDetails = new JMenuItem("Add Customer Details");
 		details.add(customerDetails);
-		customerDetails.addActionListener(this);   // <- add this
+		customerDetails.addActionListener(this);
 		
 		bookFlights = new JMenuItem("Book Flights");
 		details.add(bookFlights);
@@ -75,16 +71,6 @@ public class Home extends JFrame implements ActionListener{
 		details.add(ticketCancellation);
 		ticketCancellation.addActionListener(this);
 
-		JMenu tickets = new JMenu("tickets");
-		menubar.add(tickets);
-
-		boardingPass = new JMenuItem("Boarding Pass");
-		tickets.add(boardingPass);
-		boardingPass.addActionListener(this);
-		
-		
-		
-		
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setVisible(true);
 
@@ -96,7 +82,7 @@ public class Home extends JFrame implements ActionListener{
             new AddCustomer();
         } else if (text.equals("Flight Details")) {
             new FlightInfo();
-        } else if (text.equals("Book Flight")) {
+        } else if (text.equals("Book Flights")) {
             new BookFlight();
         } else if (text.equals("Journey Details")) {
             new JourneyDetails();
@@ -106,7 +92,7 @@ public class Home extends JFrame implements ActionListener{
     }
 	
 	public static void main(String[] args) {
-		new Home();
+		new Login();
 		
 	}
 }
